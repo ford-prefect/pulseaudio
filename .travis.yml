@@ -4,6 +4,11 @@ compiler:
   - gcc
  #- clang
 
+env:
+  global:
+    # COVERITY_SCAN_TOKEN
+    - secure: "IH+57MI8NgWNSFaDc2vuDzZOrLI0XV2XqSVd0bM5Rk6ab7dXTSE5j+IKHAnNp1YX3cdo4OtFAep+FyAUgV7o67iq1W2gwl7Ahmp+pGOz2eOVgAYQrurJrNXvEwDref3EiOd9B0a1WtNkmeTibFC+K/oRQ0/YXqa+Hce3arZyrrk="
+
 before_install:
   - sudo sh -c 'echo "deb http://archive.ubuntu.com/ubuntu/ trusty main universe\ndeb-src http://archive.ubuntu.com/ubuntu/ trusty main universe" >> /etc/apt/sources.list'
   - sudo apt-get -qq update
@@ -56,9 +61,20 @@ before_script:
   - NOCONFIGURE=1 ./bootstrap.sh
 
 script:
-  - ./configure --localstatedir=/var && make && make check && make check-daemon
+  - if [ ${COVERITY_SCAN_BRANCH} != 1 ]; then ./configure --localstatedir=/var && make && make check && make check-daemon; fi
 
 notifications:
   email:
     recipients:
-      - pulseaudio-commits@lists.freedesktop.org
+      - arun@accosted.net
+
+addons:
+  coverity_scan:
+    project:
+      name: "ford-prefect/pulseaudio"
+      description: "Pulseaudio Sound Server"
+    notification_email: arun@accosted.net
+
+    build_command_prepend: "./configure --localstatedir=/var"
+    build_command: make
+    branch_pattern: coverity_scan
